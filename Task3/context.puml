@@ -1,0 +1,42 @@
+@startuml Диаграмма контейнеров C4: Платформа PropDevelopment с новыми сервисами "Умный дом"
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+
+title Контейнерная диаграмма платформы PropDevelopment с интегрированными сервисами "Умный дом"
+
+Person(owner, "Собственник/Жилец", "Владелец квартиры, пользователь мобильного приложения")
+
+Container(app_mobile, "Мобильное приложение\nPropDevelopment", "Android, iOS", "Существующее приложение для собственников.\nРасширяется новыми функциями 'Умного дома'.")
+
+Container(auth, "Auth", "", "Сервис авторизации")
+
+Container_Boundary(prop_boundary, "Система PropDevelopment") {
+    Container(smart_home_app, "SmartHome App", "", "Сервис взаимодействия с партнером умный дом")
+}
+
+
+Container_Boundary(partner_boundary, "Партнерский сервис Умный дом") {
+    Container_Ext(svc_smart_intercom, "Сервис интеллектуального\nдомофона", "REST API", "Обрабатывает видео, распознает лица,\nуправляет доступом через дверь.")
+    Container_Ext(svc_smart_barrier, "Сервис интеллектуального\nшлагбаума", "REST API", "Распознает номера автомобилей,\nуправляет шлагбаумом.")
+
+}
+
+System_Ext(physical_devices, "Физические устройства\nна объектах", "Аппаратное обеспечение: камеры, контроллеры, замки")
+
+
+Rel(owner, app_mobile, "", "HTTPS")
+
+Rel(app_mobile, smart_home_app, "Запрашивает управление\nдоступом (открыть дверь/шлагбаум)", "HTTPS / JSON\n\n**Безопасность:** Все запросы должны быть аутентифицированы\nс использованием токенов PropDevelopment.")
+
+Rel(app_mobile, auth, "", "Авторизация пользователя, получение токена JWT")
+
+
+Rel(smart_home_app, svc_smart_intercom, "Передает команды\nна открытие/закрытие, запрашивает статус", "HTTPS / API")
+Rel(smart_home_app, svc_smart_barrier, "Передает команды\nна открытие/закрытие", "HTTPS / API")
+
+
+Rel(svc_smart_intercom, physical_devices, "Управляет замком,\nполучает видеопоток", "RTSP / MQTT / Протоколы IoT")
+Rel(svc_smart_barrier, physical_devices, "Управляет шлагбаумом,\nполучает видео с камеры", "RTSP / MQTT / Протоколы IoT")
+
+
+@enduml
